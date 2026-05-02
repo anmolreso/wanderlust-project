@@ -1,13 +1,11 @@
 <% layout("/layouts/boilerplate") %>
 
-<!-- ================= TITLE ================= -->
 <div class="row mt-3">
   <div class="col-12">
     <h3><%= listing.title %></h3>
   </div>
 </div>
 
-<!-- ================= LISTING CARD ================= -->
 <div class="row">
   <div class="col-md-6 offset-md-3">
     <div class="card show-card listing-card">
@@ -18,183 +16,47 @@
       >
 
       <div class="card-body">
+
+        <!-- ✅ OWNER SAFE -->
         <p class="card-text">
-          Owned by <i><%= listing.owner.username %></i>
+          <% if (listing.owner) { %>
+            Owned by <i><%= listing.owner.username %></i>
+          <% } else { %>
+            Owned by <i>Unknown</i>
+          <% } %>
         </p>
 
-        <p class="card-text">
-          <%= listing.description %>
-        </p>
+        <p class="card-text"><%= listing.description %></p>
 
         <p class="card-text">
           &#8377; <%= listing.price.toLocaleString("en-IN") %>
         </p>
 
-        <p class="card-text">
-          <%= listing.location %>
-        </p>
+        <p class="card-text"><%= listing.location %></p>
+        <p class="card-text"><%= listing.country %></p>
 
-        <p class="card-text">
-          <%= listing.country %>
-        </p>
       </div>
-
     </div>
   </div>
 </div>
 
 <br/>
 
-<!-- ================= EDIT / DELETE ================= -->
-<% if (currUser && listing.owner._id.equals(currUser._id)) { %>
+<!-- ✅ SAFE EDIT/DELETE -->
+<% if (currUser && listing.owner && listing.owner._id.equals(currUser._id)) { %>
 
   <div class="btns">
     <div class="col-md-6 offset-md-3 d-flex gap-3">
 
-      <a
-        href="/listings/<%= listing._id %>/edit"
-        class="btn btn-danger"
-      >
+      <a href="/listings/<%= listing._id %>/edit" class="btn btn-danger">
         Edit
       </a>
 
-      <form
-        method="POST"
-        action="/listings/<%= listing._id %>?_method=DELETE"
-      >
-        <button class="btn btn-dark">
-          Delete
-        </button>
+      <form method="POST" action="/listings/<%= listing._id %>?_method=DELETE">
+        <button class="btn btn-dark">Delete</button>
       </form>
 
     </div>
   </div>
 
 <% } %>
-
-<!-- ================= REVIEW SECTION ================= -->
-<div class="col-md-8 offset-2 mb-3">
-
-  <h4>Leave a review</h4>
-
-  <% if (currUser) { %>
-
-    <form
-      action="/listings/<%= listing._id %>/reviews"
-      method="POST"
-    >
-
-      <!-- RATING -->
-      <div class="mb-3 mt-3">
-        <label class="form-label">Rating</label>
-
-        <fieldset class="starability-slot">
-
-          <input type="radio" name="review[rating]" value="1" checked />
-          <input type="radio" name="review[rating]" value="2" />
-          <input type="radio" name="review[rating]" value="3" />
-          <input type="radio" name="review[rating]" value="4" />
-          <input type="radio" name="review[rating]" value="5" />
-
-        </fieldset>
-      </div>
-
-      <!-- COMMENT -->
-      <div class="mb-3">
-        <label class="form-label">Comment</label>
-
-        <textarea
-          name="review[comment]"
-          class="form-control"
-          required
-        ></textarea>
-      </div>
-
-      <button class="btn btn-outline-dark">
-        Submit
-      </button>
-
-    </form>
-
-    <hr/>
-
-  <% } %>
-
-  <!-- ================= ALL REVIEWS ================= -->
-  <% if (listing.reviews.length > 0) { %>
-
-    <div class="row">
-      <p><b>All Reviews</b></p>
-
-      <% for (let review of listing.reviews) { %>
-
-        <div class="col-md-5 ms-3 mb-3">
-
-          <div class="card">
-            <div class="card-body">
-
-              <h5>
-                <%= review.author.username %>
-              </h5>
-
-              <p
-                class="starability-result card-text"
-                data-rating="<%= review.rating %>">
-              </p>
-
-              <p>
-                <%= review.comment %>
-              </p>
-
-              <% if (
-                currUser &&
-                review.author &&
-                review.author._id.equals(currUser._id)
-              ) { %>
-
-                <form
-                  method="POST"
-                  action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE"
-                >
-                  <button class="btn btn-sm btn-dark">
-                    Delete
-                  </button>
-                </form>
-
-              <% } %>
-
-            </div>
-          </div>
-
-        </div>
-
-      <% } %>
-    </div>
-
-  <% } %>
-</div>
-
-<!-- ================= MAP SECTION ================= -->
-<div class="col-8 offset-2 mb-3">
-  <h3>Where you'll be</h3>
-
-  <div id="map"></div>
-</div>
-
-<style>
-  #map {
-    height: 400px;
-    width: 100%;
-    border-radius: 12px;
-  }
-</style>
-
-<!-- ================= PASS DATA TO JS ================= -->
-<script>
-  const mapToken = "<%= process.env.MAP_TOKEN %>";
-  const coordinates = <%- JSON.stringify(listing.geometry.coordinates) %>;
-  const title = "<%= listing.title %>";
-</script>
-
-<!-- ================= MAP SCRIPT ================= -->
-<script src="/js/map.js"></script>
